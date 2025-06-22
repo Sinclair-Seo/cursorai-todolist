@@ -5,9 +5,9 @@ import { getFirestore, type Firestore } from 'firebase/firestore';
 // Firebase 설정 (환경 변수 사용)
 const firebaseConfig = {
   apiKey: process.env.REACT_APP_FIREBASE_API_KEY || "AIzaSyB5QwdMBKdKv7vin8_5476bmj-tjgggfpM",
-  authDomain: process.env.REACT_APP_FIREBASE_AUTH_DOMAIN || "fastcampus-todo-list.firebaseapp.com",
-  projectId: process.env.REACT_APP_FIREBASE_PROJECT_ID || "fastcampus-todo-list",
-  storageBucket: process.env.REACT_APP_FIREBASE_STORAGE_BUCKET || "fastcampus-todo-list.firebasestorage.app",
+  authDomain: process.env.REACT_APP_FIREBASE_AUTH_DOMAIN || "cursorai-todolist.firebaseapp.com",
+  projectId: process.env.REACT_APP_FIREBASE_PROJECT_ID || "cursorai-todolist",
+  storageBucket: process.env.REACT_APP_FIREBASE_STORAGE_BUCKET || "cursorai-todolist.appspot.com",
   messagingSenderId: process.env.REACT_APP_FIREBASE_MESSAGING_SENDER_ID || "469956581840",
   appId: process.env.REACT_APP_FIREBASE_APP_ID || "1:469956581840:web:301bc3f3ac0763528b81d5"
 };

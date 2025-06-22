@@ -18,7 +18,7 @@ React와 Firebase를 사용한 현대적인 Todo List 애플리케이션입니�
 - **Styling**: TailwindCSS
 - **Backend**: Firebase Firestore
 - **Authentication**: Firebase Auth (준비 중)
-- **Deployment**: GitHub Pages
+- **Deployment**: Firebase Hosting
 
 ## 📦 설치 및 실행
 
@@ -34,15 +34,15 @@ npm install
 ```
 
 ### 3. Firebase 설정
-1. Firebase Console에서 새 프로젝트 생성
+1. Firebase Console에서 새 프로젝트 생성: **"CursorAI ToDo List App"**
 2. Firestore Database 활성화
 3. `.env` 파일 생성 후 Firebase 설정 추가:
 
 ```env
 REACT_APP_FIREBASE_API_KEY=your_api_key
-REACT_APP_FIREBASE_AUTH_DOMAIN=your_project.firebaseapp.com
-REACT_APP_FIREBASE_PROJECT_ID=your_project_id
-REACT_APP_FIREBASE_STORAGE_BUCKET=your_project.appspot.com
+REACT_APP_FIREBASE_AUTH_DOMAIN=cursorai-todolist.firebaseapp.com
+REACT_APP_FIREBASE_PROJECT_ID=cursorai-todolist
+REACT_APP_FIREBASE_STORAGE_BUCKET=cursorai-todolist.appspot.com
 REACT_APP_FIREBASE_MESSAGING_SENDER_ID=your_sender_id
 REACT_APP_FIREBASE_APP_ID=your_app_id
 ```
@@ -86,6 +86,14 @@ src/
 - `npm test`: 테스트 실행
 - `npm run build`: 프로덕션 빌드
 - `npm run eject`: 설정 추출 (주의: 되돌릴 수 없음)
+
+## 🚀 배포
+
+### Firebase Hosting 배포
+```bash
+npm run build
+firebase deploy
+```
 
 ## 📝 라이선스
 
