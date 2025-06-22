@@ -1,30 +1,12 @@
-import { 
-  collection, 
-  addDoc, 
-  updateDoc, 
-  deleteDoc, 
-  doc, 
-  query, 
-  orderBy, 
-  onSnapshot, 
-  serverTimestamp,
-  Timestamp 
-} from 'firebase/firestore';
-import { db } from './config';
+// 동적 import를 사용한 Firestore 함수 로드 (번들 크기 최적화)
+import { checkFirebaseConnection } from './config';
 import { Todo, CreateTodoInput, UpdateTodoInput } from '../../types/todo';
 
 // Firestore 컬렉션 이름
 const COLLECTION_NAME = 'todos';
 
-// Firebase db가 설정되지 않았는지 확인
-const checkFirebaseConnection = () => {
-  if (!db) {
-    throw new Error('Firebase가 설정되지 않았습니다. 환경 변수를 확인해주세요.');
-  }
-};
-
 // Firestore Timestamp를 Date로 변환하는 헬퍼 함수
-const convertTimestamp = (timestamp: Timestamp | null): Date => {
+const convertTimestamp = (timestamp: any): Date => {
   if (!timestamp) {
     return new Date(); // null인 경우 현재 시간 반환
   }
@@ -45,11 +27,13 @@ const convertFirestoreDoc = (doc: any): Todo => {
   };
 };
 
-// 할 일 추가 (Create)
+// 할 일 추가 (Create) - 동적 import 사용
 export const addTodo = async (todoInput: CreateTodoInput): Promise<string> => {
   try {
-    checkFirebaseConnection();
-    const docRef = await addDoc(collection(db, COLLECTION_NAME), {
+    const { db: firestoreDb } = await checkFirebaseConnection();
+    const { collection, addDoc, serverTimestamp } = await import('firebase/firestore');
+    
+    const docRef = await addDoc(collection(firestoreDb, COLLECTION_NAME), {
       ...todoInput,
       completed: false,
       createdAt: serverTimestamp(),
@@ -62,43 +46,58 @@ export const addTodo = async (todoInput: CreateTodoInput): Promise<string> => {
   }
 };
 
-// 할 일 조회 (Read) - 실시간 구독
+// 할 일 조회 (Read) - 실시간 구독 (동적 import 사용)
 export const subscribeToTodos = (callback: (todos: Todo[]) => void) => {
-  try {
-    checkFirebaseConnection();
-    const q = query(
-      collection(db, COLLECTION_NAME), 
-      orderBy('createdAt', 'desc')
-    );
-    
-    return onSnapshot(q, (querySnapshot) => {
-      const todos: Todo[] = [];
-      querySnapshot.forEach((doc) => {
-        try {
-          todos.push(convertFirestoreDoc(doc));
-        } catch (error) {
-          console.error('Error converting document:', error, doc.id);
-          // 에러가 발생한 문서는 건너뛰고 계속 진행
-        }
+  let unsubscribe: (() => void) | null = null;
+  
+  const setupSubscription = async () => {
+    try {
+      const { db: firestoreDb } = await checkFirebaseConnection();
+      const { collection, query, orderBy, onSnapshot } = await import('firebase/firestore');
+      
+      const q = query(
+        collection(firestoreDb, COLLECTION_NAME), 
+        orderBy('createdAt', 'desc')
+      );
+      
+      unsubscribe = onSnapshot(q, (querySnapshot) => {
+        const todos: Todo[] = [];
+        querySnapshot.forEach((doc) => {
+          try {
+            todos.push(convertFirestoreDoc(doc));
+          } catch (error) {
+            console.error('Error converting document:', error, doc.id);
+            // 에러가 발생한 문서는 건너뛰고 계속 진행
+          }
+        });
+        callback(todos);
+      }, (error) => {
+        console.error('Error fetching todos: ', error);
+        throw new Error('할 일을 불러오는 중 오류가 발생했습니다.');
       });
-      callback(todos);
-    }, (error) => {
-      console.error('Error fetching todos: ', error);
-      throw new Error('할 일을 불러오는 중 오류가 발생했습니다.');
-    });
-  } catch (error) {
-    console.error('Firebase connection error:', error);
-    // Firebase 연결 실패 시 빈 배열로 콜백 호출
-    callback([]);
-    return () => {}; // 빈 cleanup 함수 반환
-  }
+    } catch (error) {
+      console.error('Firebase connection error:', error);
+      // Firebase 연결 실패 시 빈 배열로 콜백 호출
+      callback([]);
+    }
+  };
+  
+  setupSubscription();
+  
+  return () => {
+    if (unsubscribe) {
+      unsubscribe();
+    }
+  };
 };
 
-// 할 일 수정 (Update)
+// 할 일 수정 (Update) - 동적 import 사용
 export const updateTodo = async (id: string, updates: UpdateTodoInput): Promise<void> => {
   try {
-    checkFirebaseConnection();
-    const todoRef = doc(db, COLLECTION_NAME, id);
+    const { db: firestoreDb } = await checkFirebaseConnection();
+    const { doc, updateDoc, serverTimestamp } = await import('firebase/firestore');
+    
+    const todoRef = doc(firestoreDb, COLLECTION_NAME, id);
     await updateDoc(todoRef, {
       ...updates,
       updatedAt: serverTimestamp()
@@ -109,11 +108,13 @@ export const updateTodo = async (id: string, updates: UpdateTodoInput): Promise<
   }
 };
 
-// 할 일 삭제 (Delete)
+// 할 일 삭제 (Delete) - 동적 import 사용
 export const deleteTodo = async (id: string): Promise<void> => {
   try {
-    checkFirebaseConnection();
-    await deleteDoc(doc(db, COLLECTION_NAME, id));
+    const { db: firestoreDb } = await checkFirebaseConnection();
+    const { doc, deleteDoc } = await import('firebase/firestore');
+    
+    await deleteDoc(doc(firestoreDb, COLLECTION_NAME, id));
   } catch (error) {
     console.error('Error deleting todo: ', error);
     throw new Error('할 일을 삭제하는 중 오류가 발생했습니다.');
