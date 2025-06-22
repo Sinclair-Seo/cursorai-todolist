@@ -18,26 +18,51 @@ import { Todo, CreateTodoInput, UpdateTodoInput } from '../../types/todo';
 const COLLECTION_NAME = 'todos';
 
 // Firestore Timestamp를 Date로 변환하는 헬퍼 함수
-const convertTimestamp = (timestamp: Timestamp | null): Date => {
+const convertTimestamp = (timestamp: Timestamp | null | undefined): Date => {
   if (!timestamp) {
-    return new Date(); // null인 경우 현재 시간 반환
+    return new Date(); // null 또는 undefined인 경우 현재 시간 반환
   }
-  return timestamp.toDate();
+  
+  try {
+    return timestamp.toDate();
+  } catch (error) {
+    console.warn('타임스탬프 변환 실패, 현재 시간 사용:', error);
+    return new Date();
+  }
 };
 
 // Firestore 문서를 Todo 객체로 변환하는 헬퍼 함수
 const convertFirestoreDoc = (doc: any): Todo => {
-  const data = doc.data();
-  return {
-    id: doc.id,
-    title: data.title || '',
-    description: data.description || '',
-    priority: data.priority || 2,
-    completed: data.completed || false,
-    status: data.status || 'todo', // 기본값 설정
-    createdAt: convertTimestamp(data.createdAt),
-    updatedAt: convertTimestamp(data.updatedAt)
-  };
+  try {
+    const data = doc.data();
+    if (!data) {
+      throw new Error('문서 데이터가 없습니다.');
+    }
+
+    return {
+      id: doc.id,
+      title: data.title || '',
+      description: data.description || '',
+      priority: data.priority || 2,
+      completed: Boolean(data.completed),
+      status: data.status || 'todo', // 기본값 설정
+      createdAt: convertTimestamp(data.createdAt),
+      updatedAt: convertTimestamp(data.updatedAt)
+    };
+  } catch (error) {
+    console.error('문서 변환 실패:', error, doc.id);
+    // 기본 Todo 객체 반환
+    return {
+      id: doc.id,
+      title: '오류가 발생한 항목',
+      description: '데이터를 불러오는 중 오류가 발생했습니다.',
+      priority: 2,
+      completed: false,
+      status: 'todo',
+      createdAt: new Date(),
+      updatedAt: new Date()
+    };
+  }
 };
 
 // 할 일 추가 (Create)
@@ -76,7 +101,8 @@ export const subscribeToTodos = (callback: (todos: Todo[]) => void) => {
         const todos: Todo[] = [];
         querySnapshot.forEach((doc) => {
           try {
-            todos.push(convertFirestoreDoc(doc));
+            const todo = convertFirestoreDoc(doc);
+            todos.push(todo);
           } catch (error) {
             console.error('Error converting document:', error, doc.id);
             // 에러가 발생한 문서는 건너뛰고 계속 진행

@@ -13,7 +13,8 @@ function App() {
     editTodo,
     removeTodo,
     toggleComplete,
-    clearError
+    clearError,
+    retryConnection
   } = useTodos();
 
   return (
@@ -27,6 +28,7 @@ function App() {
           onUpdateTodo={editTodo}
           onDeleteTodo={removeTodo}
           onToggleComplete={toggleComplete}
+          onRetry={retryConnection}
         />
         
         {/* 통계 정보 */}

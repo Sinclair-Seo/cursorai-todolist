@@ -16,6 +16,7 @@ export const useTodos = () => {
   const [filter, setFilter] = useState<TodoFilter>({});
   const [sort, setSort] = useState<TodoSort>({ field: 'createdAt', direction: 'desc' });
   const [firebaseReady, setFirebaseReady] = useState(false);
+  const [connectionRetries, setConnectionRetries] = useState(0);
 
   // Firebase 준비 상태 확인
   useEffect(() => {
@@ -23,14 +24,20 @@ export const useTodos = () => {
       const ready = Boolean(isFirebaseReady());
       setFirebaseReady(ready);
       
-      if (!ready) {
-        // Firebase가 준비되지 않은 경우 1초 후 다시 확인
-        setTimeout(checkFirebaseStatus, 1000);
+      if (!ready && connectionRetries < 5) {
+        // Firebase가 준비되지 않은 경우 최대 5번까지 재시도
+        setTimeout(() => {
+          setConnectionRetries(prev => prev + 1);
+          checkFirebaseStatus();
+        }, 2000); // 2초마다 재시도
+      } else if (!ready && connectionRetries >= 5) {
+        setError('Firebase 연결에 실패했습니다. 페이지를 새로고침해주세요.');
+        setLoading(false);
       }
     };
 
     checkFirebaseStatus();
-  }, []);
+  }, [connectionRetries]);
 
   // Firebase 실시간 구독 설정
   useEffect(() => {
@@ -195,6 +202,13 @@ export const useTodos = () => {
     return { total, completed, inProgress, todo, highPriority };
   }, [todos]);
 
+  // 연결 재시도
+  const retryConnection = useCallback(() => {
+    setConnectionRetries(0);
+    setError(null);
+    setLoading(true);
+  }, []);
+
   return {
     todos: filteredTodos(),
     loading: loading || !firebaseReady,
@@ -209,6 +223,7 @@ export const useTodos = () => {
     toggleComplete,
     updateFilter,
     updateSort,
-    clearError: () => setError(null)
+    clearError: () => setError(null),
+    retryConnection
   };
 }; 

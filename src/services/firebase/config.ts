@@ -2,14 +2,14 @@
 import { initializeApp, type FirebaseApp } from 'firebase/app';
 import { getFirestore, type Firestore } from 'firebase/firestore';
 
-// Firebase 설정 (환경 변수 또는 기본값 사용)
+// Firebase 설정 (환경 변수 사용)
 const firebaseConfig = {
-  apiKey: "AIzaSyB5QwdMBKdKv7vin8_5476bmj-tjgggfpM",
-  authDomain: "fastcampus-todo-list.firebaseapp.com",
-  projectId: "fastcampus-todo-list",
-  storageBucket: "fastcampus-todo-list.firebasestorage.app",
-  messagingSenderId: "469956581840",
-  appId: "1:469956581840:web:301bc3f3ac0763528b81d5"
+  apiKey: process.env.REACT_APP_FIREBASE_API_KEY || "AIzaSyB5QwdMBKdKv7vin8_5476bmj-tjgggfpM",
+  authDomain: process.env.REACT_APP_FIREBASE_AUTH_DOMAIN || "fastcampus-todo-list.firebaseapp.com",
+  projectId: process.env.REACT_APP_FIREBASE_PROJECT_ID || "fastcampus-todo-list",
+  storageBucket: process.env.REACT_APP_FIREBASE_STORAGE_BUCKET || "fastcampus-todo-list.firebasestorage.app",
+  messagingSenderId: process.env.REACT_APP_FIREBASE_MESSAGING_SENDER_ID || "469956581840",
+  appId: process.env.REACT_APP_FIREBASE_APP_ID || "1:469956581840:web:301bc3f3ac0763528b81d5"
 };
 
 // Firebase 초기화 상태
@@ -24,7 +24,8 @@ console.log('Firebase 설정 로드 중...', {
   projectId: firebaseConfig.projectId,
   authDomain: firebaseConfig.authDomain,
   hasApiKey: !!firebaseConfig.apiKey,
-  nodeEnv: process.env.NODE_ENV
+  nodeEnv: process.env.NODE_ENV,
+  isDevelopment: process.env.NODE_ENV === 'development'
 });
 
 // Firebase 초기화 함수 (Promise 기반)
@@ -46,6 +47,11 @@ const initializeFirebase = async (): Promise<{ app: FirebaseApp; db: Firestore }
   initializationPromise = new Promise(async (resolve, reject) => {
     try {
       console.log('🔄 Firebase 초기화 시작...');
+
+      // 설정 유효성 검사
+      if (!firebaseConfig.apiKey || !firebaseConfig.projectId) {
+        throw new Error('Firebase 설정이 올바르지 않습니다. 환경변수를 확인해주세요.');
+      }
 
       // Firebase 앱 초기화
       if (!app) {

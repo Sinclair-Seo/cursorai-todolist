@@ -19,6 +19,7 @@ import TodoForm from '../TodoForm';
 import PrioritySelector from '../PrioritySelector';
 import { KanbanColumn } from './KanbanColumn';
 import { SortableTodoItem } from './SortableTodoItem';
+import Error from '../Error';
 
 interface KanbanBoardProps {
   todos: Todo[];
@@ -28,6 +29,7 @@ interface KanbanBoardProps {
   onUpdateTodo: (id: string, updates: any) => Promise<void>;
   onDeleteTodo: (id: string) => Promise<void>;
   onToggleComplete: (id: string, completed: boolean) => Promise<void>;
+  onRetry?: () => void;
 }
 
 export const KanbanBoard: React.FC<KanbanBoardProps> = ({
@@ -37,7 +39,8 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
   onCreateTodo,
   onUpdateTodo,
   onDeleteTodo,
-  onToggleComplete
+  onToggleComplete,
+  onRetry
 }) => {
   const [showForm, setShowForm] = useState(false);
   const [filterPriority, setFilterPriority] = useState<PriorityLevel | null>(null);
@@ -104,9 +107,11 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
 
   if (error) {
     return (
-      <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-        <p className="text-red-600">{error}</p>
-      </div>
+      <Error 
+        message={error} 
+        onRetry={onRetry}
+        className="min-h-64"
+      />
     );
   }
 
