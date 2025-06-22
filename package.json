@@ -3,6 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "@dnd-kit/core": "^6.3.1",
+    "@dnd-kit/sortable": "^10.0.0",
+    "@dnd-kit/utilities": "^3.2.2",
     "@testing-library/dom": "^10.4.0",
     "@testing-library/jest-dom": "^6.6.3",
     "@testing-library/react": "^16.3.0",
@@ -28,12 +31,10 @@
     "build:prod": "set \"GENERATE_SOURCEMAP=false\" && react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
-    "firebase:login": "firebase login",
-    "firebase:init": "firebase init",
-    "firebase:deploy": "npm run build:prod && firebase deploy",
     "firebase:emulators": "firebase emulators:start",
     "firebase:rules": "firebase deploy --only firestore:rules",
-    "firebase:hosting": "firebase deploy --only hosting"
+    "dev:local": "npm start",
+    "dev:emulator": "firebase emulators:start --only firestore"
   },
   "eslintConfig": {
     "extends": [

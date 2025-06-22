@@ -93,7 +93,13 @@ const TodoList: React.FC<TodoListProps> = ({
 
   // 완료 상태 필터 처리
   const handleCompletedFilter = (completed: boolean | undefined) => {
-    onUpdateFilter({ completed });
+    if (completed === undefined) {
+      onUpdateFilter({ status: undefined });
+    } else if (completed) {
+      onUpdateFilter({ status: 'completed' });
+    } else {
+      onUpdateFilter({ status: 'todo' });
+    }
   };
 
   // 정렬 처리
@@ -234,25 +240,25 @@ const TodoList: React.FC<TodoListProps> = ({
                 </label>
                 <div className="flex gap-2">
                   <Button
-                    variant={filter.completed === undefined ? 'primary' : 'secondary'}
+                    variant={filter.status === undefined ? 'primary' : 'secondary'}
                     size="sm"
                     onClick={() => handleCompletedFilter(undefined)}
                   >
                     전체
                   </Button>
                   <Button
-                    variant={filter.completed === false ? 'primary' : 'secondary'}
-                    size="sm"
-                    onClick={() => handleCompletedFilter(false)}
-                  >
-                    미완료
-                  </Button>
-                  <Button
-                    variant={filter.completed === true ? 'primary' : 'secondary'}
+                    variant={filter.status === 'completed' ? 'primary' : 'secondary'}
                     size="sm"
                     onClick={() => handleCompletedFilter(true)}
                   >
                     완료
+                  </Button>
+                  <Button
+                    variant={filter.status === 'todo' ? 'primary' : 'secondary'}
+                    size="sm"
+                    onClick={() => handleCompletedFilter(false)}
+                  >
+                    미완료
                   </Button>
                 </div>
               </div>
@@ -374,11 +380,11 @@ const TodoList: React.FC<TodoListProps> = ({
                 할 일이 없습니다
               </h3>
               <p className="text-gray-600 dark:text-gray-400 mb-4">
-                {filter.search || filter.priority || filter.completed !== undefined
+                {filter.search || filter.priority || filter.status !== undefined
                   ? '검색 조건에 맞는 할 일이 없습니다.'
                   : '새로운 할 일을 추가해보세요!'}
               </p>
-              {!filter.search && filter.priority === undefined && filter.completed === undefined && (
+              {!filter.search && filter.priority === undefined && filter.status === undefined && (
                 <Button onClick={() => setShowForm(true)}>
                   첫 번째 할 일 추가하기
                 </Button>

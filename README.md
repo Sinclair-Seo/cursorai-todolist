@@ -1,15 +1,16 @@
 # CursorAI TodoList
 
-Firebase를 활용한 React, TypeScript, TailwindCSS 기반의 현대적인 Todo List 웹 애플리케이션입니다.
+React와 Firebase를 사용한 현대적인 Todo List 애플리케이션입니다.
 
 ## 🚀 주요 기능
 
-- ✅ **CRUD 작업**: 할 일 생성, 조회, 수정, 삭제
-- 🔄 **실시간 동기화**: Firebase Firestore를 통한 실시간 데이터 동기화
-- 🎯 **우선순위 관리**: 3단계 우선순위 시스템 (높음, 보통, 낮음)
-- 📱 **반응형 디자인**: 모바일과 데스크톱에서 최적화된 UI
-- 🎨 **모던 UI**: TailwindCSS를 활용한 아름다운 디자인
-- ⚡ **TypeScript**: 타입 안전성을 보장하는 개발 환경
+- ✅ Todo 항목 추가/수정/삭제
+- 🎯 우선순위 설정 (높음/보통/낮음)
+- 📊 상태별 관리 (할 일/진행 중/완료)
+- 🔄 드래그 앤 드롭으로 상태 변경
+- 📱 반응형 디자인
+- 🔥 Firebase 실시간 데이터베이스 연동
+- 🎨 TailwindCSS를 활용한 모던 UI
 
 ## 🛠️ 기술 스택
 
@@ -17,13 +18,13 @@ Firebase를 활용한 React, TypeScript, TailwindCSS 기반의 현대적인 Todo
 - **Styling**: TailwindCSS
 - **Backend**: Firebase Firestore
 - **Authentication**: Firebase Auth (준비 중)
-- **Deployment**: Firebase Hosting (준비 중)
+- **Deployment**: GitHub Pages
 
 ## 📦 설치 및 실행
 
 ### 1. 저장소 클론
 ```bash
-git clone https://github.com/your-username/cursorai-todolist.git
+git clone https://github.com/[your-username]/cursorai-todolist.git
 cd cursorai-todolist
 ```
 
@@ -32,8 +33,10 @@ cd cursorai-todolist
 npm install
 ```
 
-### 3. 환경 변수 설정
-프로젝트 루트에 `.env` 파일을 생성하고 Firebase 설정을 추가하세요:
+### 3. Firebase 설정
+1. Firebase Console에서 새 프로젝트 생성
+2. Firestore Database 활성화
+3. `.env` 파일 생성 후 Firebase 설정 추가:
 
 ```env
 REACT_APP_FIREBASE_API_KEY=your_api_key
@@ -49,70 +52,44 @@ REACT_APP_FIREBASE_APP_ID=your_app_id
 npm start
 ```
 
-브라우저에서 [http://localhost:3000](http://localhost:3000)을 열어 애플리케이션을 확인하세요.
+브라우저에서 [http://localhost:3000](http://localhost:3000)으로 접속하세요.
 
 ## 🏗️ 프로젝트 구조
 
 ```
 src/
-├── components/          # React 컴포넌트
+├── components/          # 재사용 가능한 컴포넌트
 │   ├── common/         # 공통 컴포넌트 (Button, Input)
-│   ├── Error/          # 에러 처리 컴포넌트
+│   ├── TodoForm/       # Todo 입력 폼
+│   ├── TodoItem/       # 개별 Todo 항목
+│   ├── TodoList/       # Todo 목록
+│   ├── KanbanBoard/    # 칸반 보드
+│   ├── PrioritySelector/ # 우선순위 선택기
 │   ├── Loading/        # 로딩 컴포넌트
-│   ├── PrioritySelector/ # 우선순위 선택 컴포넌트
-│   ├── TodoForm/       # 할 일 입력 폼
-│   ├── TodoItem/       # 개별 할 일 아이템
-│   └── TodoList/       # 할 일 목록
+│   └── Error/          # 에러 컴포넌트
 ├── hooks/              # 커스텀 훅
 ├── services/           # Firebase 서비스
-│   └── firebase/       # Firebase 설정 및 서비스
 ├── types/              # TypeScript 타입 정의
-└── App.tsx             # 메인 애플리케이션 컴포넌트
+└── App.tsx             # 메인 앱 컴포넌트
 ```
 
-## 🔧 주요 컴포넌트
+## 🎯 사용 방법
 
-### TodoForm
-- 할 일 제목과 설명 입력
-- 우선순위 선택 (높음/보통/낮음)
-- 유효성 검사 및 에러 처리
+1. **Todo 추가**: 상단 입력창에 할 일을 입력하고 우선순위를 선택한 후 추가
+2. **상태 변경**: 드래그 앤 드롭으로 Todo를 다른 상태로 이동
+3. **수정/삭제**: 각 Todo 항목의 편집/삭제 버튼 사용
+4. **우선순위 필터링**: 상단 필터 버튼으로 우선순위별 정렬
 
-### TodoList
-- 할 일 목록 표시
-- 실시간 데이터 동기화
-- 로딩 및 에러 상태 처리
+## 🔧 개발 스크립트
 
-### TodoItem
-- 개별 할 일 표시
-- 완료 상태 토글
-- 수정 및 삭제 기능
+- `npm start`: 개발 서버 실행
+- `npm test`: 테스트 실행
+- `npm run build`: 프로덕션 빌드
+- `npm run eject`: 설정 추출 (주의: 되돌릴 수 없음)
 
-## 🎨 UI/UX 특징
+## 📝 라이선스
 
-- **직관적인 인터페이스**: 사용자가 쉽게 이해할 수 있는 UI
-- **반응형 디자인**: 모든 디바이스에서 최적화된 경험
-- **접근성**: 키보드 네비게이션 및 스크린 리더 지원
-- **성능 최적화**: React.memo와 useCallback을 활용한 렌더링 최적화
-
-## 🔒 보안
-
-- Firebase 보안 규칙을 통한 데이터 보호
-- 환경 변수를 통한 민감한 정보 관리
-- 입력 데이터 검증 및 sanitization
-
-## 🚀 배포
-
-### Firebase Hosting (권장)
-```bash
-npm run build
-firebase deploy
-```
-
-### Netlify
-```bash
-npm run build
-# build 폴더를 Netlify에 업로드
-```
+MIT License
 
 ## 🤝 기여하기
 
@@ -122,13 +99,9 @@ npm run build
 4. Push to the Branch (`git push origin feature/AmazingFeature`)
 5. Open a Pull Request
 
-## 📝 라이선스
-
-이 프로젝트는 MIT 라이선스 하에 배포됩니다. 자세한 내용은 `LICENSE` 파일을 참조하세요.
-
 ## 📞 문의
 
-프로젝트에 대한 문의사항이 있으시면 이슈를 생성해주세요.
+프로젝트에 대한 문의사항이 있으시면 이슈를 생성해 주세요.
 
 ---
 

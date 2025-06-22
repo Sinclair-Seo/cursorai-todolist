@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Todo, CreateTodoInput, UpdateTodoInput, TodoFilter, TodoSort } from '../types/todo';
+import { Todo, CreateTodoInput, UpdateTodoInput, TodoFilter, TodoSort, TodoStatus } from '../types/todo';
 import { 
   addTodo, 
   updateTodo, 
@@ -7,6 +7,7 @@ import {
   subscribeToTodos, 
   toggleTodoComplete 
 } from '../services/firebase/todoService';
+import { isFirebaseReady } from '../services/firebase/config';
 
 export const useTodos = () => {
   const [todos, setTodos] = useState<Todo[]>([]);
@@ -14,17 +15,43 @@ export const useTodos = () => {
   const [error, setError] = useState<string | null>(null);
   const [filter, setFilter] = useState<TodoFilter>({});
   const [sort, setSort] = useState<TodoSort>({ field: 'createdAt', direction: 'desc' });
+  const [firebaseReady, setFirebaseReady] = useState(false);
+
+  // Firebase 준비 상태 확인
+  useEffect(() => {
+    const checkFirebaseStatus = () => {
+      const ready = Boolean(isFirebaseReady());
+      setFirebaseReady(ready);
+      
+      if (!ready) {
+        // Firebase가 준비되지 않은 경우 1초 후 다시 확인
+        setTimeout(checkFirebaseStatus, 1000);
+      }
+    };
+
+    checkFirebaseStatus();
+  }, []);
 
   // Firebase 실시간 구독 설정
   useEffect(() => {
+    if (!firebaseReady) {
+      setLoading(true);
+      return;
+    }
+
+    console.log('🔄 Firebase 구독 시작...');
     const unsubscribe = subscribeToTodos((newTodos) => {
+      console.log('✅ Firebase에서 데이터 수신:', newTodos.length, '개');
       setTodos(newTodos);
       setLoading(false);
       setError(null);
     });
 
-    return () => unsubscribe();
-  }, []);
+    return () => {
+      console.log('🔄 Firebase 구독 해제...');
+      unsubscribe();
+    };
+  }, [firebaseReady]);
 
   // 필터링된 Todo 목록
   const filteredTodos = useCallback(() => {
@@ -35,9 +62,9 @@ export const useTodos = () => {
       filtered = filtered.filter(todo => todo.priority === filter.priority);
     }
 
-    // 완료 상태 필터
-    if (filter.completed !== undefined) {
-      filtered = filtered.filter(todo => todo.completed === filter.completed);
+    // 상태 필터
+    if (filter.status) {
+      filtered = filtered.filter(todo => todo.status === filter.status);
     }
 
     // 검색 필터
@@ -82,46 +109,70 @@ export const useTodos = () => {
   // 할 일 추가
   const createTodo = useCallback(async (todoInput: CreateTodoInput) => {
     try {
+      if (!firebaseReady) {
+        throw new Error('Firebase가 아직 준비되지 않았습니다. 잠시 후 다시 시도해주세요.');
+      }
+      
       setError(null);
       await addTodo(todoInput);
     } catch (err) {
-      setError(err instanceof Error ? err.message : '할 일을 추가하는 중 오류가 발생했습니다.');
+      const errorMessage = err instanceof Error ? err.message : '할 일을 추가하는 중 오류가 발생했습니다.';
+      setError(errorMessage);
+      console.error('할 일 추가 실패:', errorMessage);
       throw err;
     }
-  }, []);
+  }, [firebaseReady]);
 
   // 할 일 수정
   const editTodo = useCallback(async (id: string, updates: UpdateTodoInput) => {
     try {
+      if (!firebaseReady) {
+        throw new Error('Firebase가 아직 준비되지 않았습니다. 잠시 후 다시 시도해주세요.');
+      }
+      
       setError(null);
       await updateTodo(id, updates);
     } catch (err) {
-      setError(err instanceof Error ? err.message : '할 일을 수정하는 중 오류가 발생했습니다.');
+      const errorMessage = err instanceof Error ? err.message : '할 일을 수정하는 중 오류가 발생했습니다.';
+      setError(errorMessage);
+      console.error('할 일 수정 실패:', errorMessage);
       throw err;
     }
-  }, []);
+  }, [firebaseReady]);
 
   // 할 일 삭제
   const removeTodo = useCallback(async (id: string) => {
     try {
+      if (!firebaseReady) {
+        throw new Error('Firebase가 아직 준비되지 않았습니다. 잠시 후 다시 시도해주세요.');
+      }
+      
       setError(null);
       await deleteTodo(id);
     } catch (err) {
-      setError(err instanceof Error ? err.message : '할 일을 삭제하는 중 오류가 발생했습니다.');
+      const errorMessage = err instanceof Error ? err.message : '할 일을 삭제하는 중 오류가 발생했습니다.';
+      setError(errorMessage);
+      console.error('할 일 삭제 실패:', errorMessage);
       throw err;
     }
-  }, []);
+  }, [firebaseReady]);
 
   // 완료 상태 토글
   const toggleComplete = useCallback(async (id: string, completed: boolean) => {
     try {
+      if (!firebaseReady) {
+        throw new Error('Firebase가 아직 준비되지 않았습니다. 잠시 후 다시 시도해주세요.');
+      }
+      
       setError(null);
       await toggleTodoComplete(id, completed);
     } catch (err) {
-      setError(err instanceof Error ? err.message : '완료 상태를 변경하는 중 오류가 발생했습니다.');
+      const errorMessage = err instanceof Error ? err.message : '완료 상태를 변경하는 중 오류가 발생했습니다.';
+      setError(errorMessage);
+      console.error('완료 상태 변경 실패:', errorMessage);
       throw err;
     }
-  }, []);
+  }, [firebaseReady]);
 
   // 필터 설정
   const updateFilter = useCallback((newFilter: Partial<TodoFilter>) => {
@@ -136,20 +187,22 @@ export const useTodos = () => {
   // 통계
   const stats = useCallback(() => {
     const total = todos.length;
-    const completed = todos.filter(todo => todo.completed).length;
-    const pending = total - completed;
-    const highPriority = todos.filter(todo => todo.priority === 1 && !todo.completed).length;
+    const completed = todos.filter(todo => todo.status === 'completed').length;
+    const inProgress = todos.filter(todo => todo.status === 'in-progress').length;
+    const todo = todos.filter(todo => todo.status === 'todo').length;
+    const highPriority = todos.filter(todo => todo.priority === 1 && todo.status !== 'completed').length;
 
-    return { total, completed, pending, highPriority };
+    return { total, completed, inProgress, todo, highPriority };
   }, [todos]);
 
   return {
     todos: filteredTodos(),
-    loading,
+    loading: loading || !firebaseReady,
     error,
     filter,
     sort,
     stats: stats(),
+    firebaseReady,
     createTodo,
     editTodo,
     removeTodo,

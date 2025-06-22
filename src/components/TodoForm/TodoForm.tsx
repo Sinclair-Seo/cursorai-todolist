@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Button, Input } from '../common';
 import PrioritySelector from '../PrioritySelector';
-import { CreateTodoInput, UpdateTodoInput, Todo, PriorityLevel } from '../../types/todo';
+import { CreateTodoInput, UpdateTodoInput, Todo, PriorityLevel, TodoStatus, KANBAN_COLUMNS } from '../../types/todo';
 
 interface TodoFormProps {
   onSubmit: (data: CreateTodoInput | UpdateTodoInput) => Promise<void>;
@@ -19,7 +19,8 @@ const TodoForm: React.FC<TodoFormProps> = ({
   const [formData, setFormData] = useState<CreateTodoInput>({
     title: '',
     description: '',
-    priority: 2
+    priority: 2,
+    status: 'todo'
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -30,7 +31,8 @@ const TodoForm: React.FC<TodoFormProps> = ({
       setFormData({
         title: initialData.title,
         description: initialData.description,
-        priority: initialData.priority
+        priority: initialData.priority,
+        status: initialData.status
       });
     }
   }, [initialData]);
@@ -64,7 +66,8 @@ const TodoForm: React.FC<TodoFormProps> = ({
         setFormData({
           title: '',
           description: '',
-          priority: 2
+          priority: 2,
+          status: 'todo'
         });
       }
     } catch (error) {
@@ -72,7 +75,7 @@ const TodoForm: React.FC<TodoFormProps> = ({
     }
   };
 
-  const handleInputChange = (field: keyof CreateTodoInput, value: string | PriorityLevel) => {
+  const handleInputChange = (field: keyof CreateTodoInput, value: string | PriorityLevel | TodoStatus) => {
     setFormData(prev => ({ ...prev, [field]: value }));
     // 에러 메시지 제거
     if (errors[field]) {
@@ -115,11 +118,31 @@ const TodoForm: React.FC<TodoFormProps> = ({
             )}
           </div>
 
-          <PrioritySelector
-            value={formData.priority}
-            onChange={(priority) => handleInputChange('priority', priority)}
-            disabled={loading}
-          />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <PrioritySelector
+              value={formData.priority}
+              onChange={(priority) => handleInputChange('priority', priority || 2)}
+              disabled={loading}
+            />
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                상태
+              </label>
+              <select
+                value={formData.status}
+                onChange={(e) => handleInputChange('status', e.target.value as TodoStatus)}
+                className="input w-full"
+                disabled={loading}
+              >
+                {KANBAN_COLUMNS.map((column) => (
+                  <option key={column.id} value={column.id}>
+                    {column.icon} {column.title}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
         </div>
 
         <div className="flex gap-3 pt-4">
